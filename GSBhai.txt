@@ -1,0 +1,1 @@
+Sheets("UW").Range("E2:E" & LastRowInUWSh).FormulaR1C1 = "=VLOOKUP(RC[-1],Old!R1C1:R" & LastrowinOld & "C1,1,0)"
