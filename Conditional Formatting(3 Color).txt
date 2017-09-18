@@ -1,0 +1,37 @@
+Dim rang As Range
+Set rang = Sheets("Yearwise_Schedule").Range("AJ4:AJ" & LastRowInYearwise_ScheduleSh)
+Call ThreeColorCondFormatting(Sheets("Yearwise_Schedule"), rang)
+
+
+Public Function ThreeColorCondFormatting(ByVal SheetName As Worksheet, ByVal rg As Range)
+
+
+Dim cond1 As FormatCondition, cond2 As FormatCondition, cond3 As FormatCondition
+'Set rg = SheetName.Range("A2", Range("A2").End(xlDown))
+ 
+'clear any existing conditional formatting
+rg.FormatConditions.Delete
+ 
+'define the rule for each conditional format
+'Set cond1 = rg.FormatConditions.Add(xlCellValue, xlGreater, "=$a$1")
+Set cond1 = rg.FormatConditions.Add(xlCellValue, xlGreater, "=0")
+Set cond2 = rg.FormatConditions.Add(xlCellValue, xlLess, "=0")
+Set cond3 = rg.FormatConditions.Add(xlCellValue, xlEqual, "=0")
+ 
+'define the format applied for each conditional format
+With cond1
+.Interior.Color = vbGreen
+.Font.Color = vbBlack
+End With
+ 
+With cond2
+.Interior.Color = vbRed
+.Font.Color = vbWhite
+End With
+ 
+With cond3
+.Interior.Color = vbYellow
+.Font.Color = vbBlack
+End With
+
+End Function
