@@ -1,0 +1,56 @@
+1. Consolidating Data from Multiple Worksheets into a Summary Worksheet in Excel
+   https://msdn.microsoft.com/en-us/library/cc793964(v=office.12).aspx
+
+2. Merging Data from Multiple Workbooks into a Summary Workbook in Excel
+   https://msdn.microsoft.com/en-us/library/cc837974(v=office.12).aspx
+
+3. Improving Performance in Excel 2007
+   https://msdn.microsoft.com/en-us/library/aa730921(v=office.12).aspx
+
+4. Creating PivotTable Reports and Charts with VBA in Excel 2010
+   https://msdn.microsoft.com/en-us/library/hh243933(v=office.14).aspx
+
+5. Creating Popup Menus in All Versions of Excel
+   https://msdn.microsoft.com/en-us/library/gg987030(v=office.14).aspx
+
+6. Customizing Context Menus in All Versions of Microsoft Excel
+   https://msdn.microsoft.com/en-us/library/gg469862(v=office.14).aspx
+
+7. Excel performance: Improving calculation performance
+   https://msdn.microsoft.com/en-us/vba/excel-vba/articles/excel-improving-calcuation-performance
+
+8. Excel performance: Performance and limit improvements
+   https://msdn.microsoft.com/en-us/vba/excel-vba/articles/excel-performance-and-limit-improvements
+
+9. Excel performance: Tips for optimizing performance obstructions
+   https://msdn.microsoft.com/en-us/vba/excel-vba/articles/excel-tips-for-optimizing-performance-obstructions
+
+10. What's New for VBA in Office 2016
+    https://msdn.microsoft.com/en-us/vba/office-shared-vba/articles/what-s-new-for-vba-in-office-2016
+
+11. Getting Started with VBA in Office
+    https://msdn.microsoft.com/en-us/vba/office-shared-vba/articles/getting-started-with-vba-in-office
+
+12. Object model (Excel VBA reference)
+    https://msdn.microsoft.com/en-us/vba/excel-vba/articles/object-model-excel-vba-reference
+
+13. About coauthoring in Excel
+    https://msdn.microsoft.com/en-us/vba/excel-vba/articles/about-coauthoring-in-excel
+
+13. Language-specific Properties, Methods, and Functions
+    https://msdn.microsoft.com/en-us/vba/excel-vba/articles/language-specific-properties-methods-and-functions
+
+14. Using the Solver VBA Functions
+    https://msdn.microsoft.com/en-us/vba/excel-vba/articles/using-the-solver-vba-functions
+
+15. Create a Workbook
+
+16. Excel functions (by category)
+    https://support.office.com/en-us/article/Excel-functions-by-category-5f91f4e9-7b42-46d2-9bd1-63f26a86c0eb?CorrelationId=c1fadb43-0052-430a-aae7-aa28ef4c17c9&ui=en-US&rs=en-US&ad=US&ocmsassetID=HP010079186
+
+17. List of Worksheet Functions Available to Visual Basic
+    https://msdn.microsoft.com/en-us/vba/excel-vba/articles/list-of-worksheet-functions-available-to-visual-basic
+
+18. Automatically Dismiss a Message Box
+    https://msdn.microsoft.com/en-us/vba/excel-vba/articles/automatically-dismiss-a-message-box
+
