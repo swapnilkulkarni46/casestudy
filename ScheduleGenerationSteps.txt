@@ -1,0 +1,438 @@
+Option Explicit
+Public Function GenerateRpt_Yearly()
+
+Dim InvFrmdt As Date, ToperiodDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, InvAmt As Double, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+
+'Formatting
+Sheets("Yearwise_Schedule").Columns("B").NumberFormat = "@"
+Sheets("Yearwise_Schedule").Columns("E").NumberFormat = "@"
+Sheets("Yearwise_Schedule").Columns("N").NumberFormat = "0.00"
+Sheets("Yearwise_Schedule").Columns("J:K").NumberFormat = "dd-mmm-yyyy"
+Sheets("Yearwise_Schedule").Columns("I").NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+Sheets("Yearwise_Schedule").Columns("N").NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+'Sheets("Yearwise_Schedule").Columns("BY:BZ").Delete
+Sheets("Yearwise_Schedule").Range("BY1").Value = "Updated Invoice From Dt"
+Sheets("Yearwise_Schedule").Range("BZ1").Value = "Updated Invoice To Dt"
+Sheets("Yearwise_Schedule").Columns("BY:BZ").NumberFormat = "dd-mmm-yyyy"
+
+
+If LastRowInYearwise_ScheduleSh > 3 Then
+
+    For i = 4 To LastRowInYearwise_ScheduleSh
+        
+        InvAmt = Sheets("Yearwise_Schedule").Range("I" & i).Value
+        
+        InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+        If Day(InvFrmdt) > 15 Then
+        InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+        End If
+        
+        Sheets("Yearwise_Schedule").Range("BY" & i).Value = InvFrmdt
+        
+        ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+        If Day(ToperiodDt) > 15 Then
+        ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+        End If
+        Sheets("Yearwise_Schedule").Range("BZ" & i).Value = ToperiodDt
+        
+        'No of Month Calculation
+        NoofMonth = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+        Sheets("Yearwise_Schedule").Range("U" & i).Value = NoofMonth
+        
+        'Monthly Amount Calculation
+        Sheets("Yearwise_Schedule").Range("V" & i).Value = InvAmt / NoofMonth
+        
+        'month wise ammortization calculation
+        
+        'Sheets("Yearwise_Schedule").Range("X" & i & ":AI" & i).Value
+        
+    Next i
+
+
+'Month Calculation
+'Sheets("Yearwise_Schedule").Range("U4:U" & LastRowInYearwise_ScheduleSh).FormulaR1C1 = "=IF(RC10<>"""",DATEDIF(RC10,RC11,""m"")+1,"""")"
+
+'Monthly Amount Calculation
+'Sheets("Yearwise_Schedule").Range("V4:V" & LastRowInYearwise_ScheduleSh).FormulaR1C1 = "=IF(RC21<>"""",RC9/RC21,"""")"
+
+
+'Splitting invoice data
+'No need to change the formula, just change the headers of the month and drag it till the end in the Yearwise_Schedule sheet
+'2015 Year Data
+Sheets("Yearwise_Schedule").Range("X4:AI" & LastRowInYearwise_ScheduleSh).Clear
+'Monthwise
+Sheets("Yearwise_Schedule").Range("X4:AI" & LastRowInYearwise_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC77,EOMONTH(RC78,0),R3C),RC22,0)"
+
+'"=IF(R3C=MEDIAN(RC78,EOMONTH(RC77,0),R3C),RC22,0)"
+
+'month wise
+'Sheets("Yearwise_Schedule").Range("X4:AI" & LastRowInYearwise_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC10,RC11,R3C),RC22,0)"
+
+
+
+
+
+
+'"=IF(R9C8=MEDIAN(RC3,RC4,R9C8),RC7,0)"
+
+'day wise
+'Sheets("Yearwise_Schedule").Range("X4:AI" & LastRowInYearwise_ScheduleSh).FormulaR1C1 = _
+        "=IF(RC22<>"""",RC22*((MAX(R3C-RC10,0)-MAX(EOMONTH(R3C,-1)-RC10,0))-(MAX(R3C-RC11,0)-MAX(EOMONTH(R3C,-1)-RC11,0))+(EOMONTH(R3C,0)=EOMONTH(RC10,0))),"""")"
+
+'Sheets("Yearwise_Schedule").Range("AJ4:AJ" & LastRowInYearwise_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC24:RC35),2),"""")"
+
+
+'Calculate Opening-Closing Balance
+
+ Call CalOpenCloseBal_YearlySch
+Call Del_CatchupRecGreatThanCurYear
+Call CatchUp_Logic_Yearly_Open
+
+'Calculate Differences at the end
+'Sheets("Yearwise_Schedule").Range("AK4:AK" & LastRowInYearwise_ScheduleSh).FormulaR1C1 = "=RC9-RC36"
+
+'calculate Conditional formatting
+Dim rang As Range
+Set rang = Sheets("Yearwise_Schedule").Range("AJ4:AJ" & LastRowInYearwise_ScheduleSh)
+Call ThreeColorCondFormatting(Sheets("Yearwise_Schedule"), rang)
+
+'Calculate grand total for every month
+'Dim i As Integer
+'For i = 24 To 36
+'    Sheets("Yearwise_Schedule").Cells(LastRowInYearwise_ScheduleSh + 1, i).FormulaR1C1 _
+'    = "=SUM(R4C" & i & ":R" & LastRowInYearwise_ScheduleSh & "C" & i & ")"
+'Next i
+
+'Sheets("Yearwise_Schedule").Range("V" & LastRowInYearwise_ScheduleSh + 1).Value = "Total"
+
+'Font : Bold Lastrow
+'Sheets("Yearwise_Schedule").Range(Sheets("Yearwise_Schedule").Cells(LastRowInYearwise_ScheduleSh + 1, 23), _
+'Sheets("Yearwise_Schedule").Cells(LastRowInYearwise_ScheduleSh + 1, 36)).Font.Bold = True
+
+Sheets("Yearwise_Schedule").Range("W4:AJ" & LastRowInYearwise_ScheduleSh).NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+
+'Autofit Columns
+Sheets("Yearwise_Schedule").Columns("A:AJ").AutoFit
+
+'Center Alignement of some certain columns
+Sheets("Yearwise_Schedule").Columns("A:C").HorizontalAlignment = xlCenter
+Sheets("Yearwise_Schedule").Columns("H").HorizontalAlignment = xlCenter
+Sheets("Yearwise_Schedule").Columns("J:L").HorizontalAlignment = xlCenter
+Sheets("Yearwise_Schedule").Columns("O:P").HorizontalAlignment = xlCenter
+
+'Apply Border
+Sheets("Yearwise_Schedule").Range(Sheets("Yearwise_Schedule").Cells(4, 1), Sheets("Yearwise_Schedule").Cells(LastRowInYearwise_ScheduleSh, LastColInYearwise_ScheduleSh)).Borders.LineStyle = xlContinuous
+Sheets("Yearwise_Schedule").Range(Sheets("Yearwise_Schedule").Cells(4, 1), Sheets("Yearwise_Schedule").Cells(LastRowInYearwise_ScheduleSh, LastColInYearwise_ScheduleSh)).Borders.Colorindex = 16
+End If
+
+'Check the Zero value invoices
+If ScheduleYearly.ChkBox_NonZeroValInv.Value = True Then
+    Call DeleteDiff_ExceptZero_Yearlysh
+End If
+End Function
+Public Function GenerateSchConZeroRpt()
+
+Sheets("Consolidated_Schedule").Columns("B").NumberFormat = "@"
+Sheets("Consolidated_Schedule").Columns("E").NumberFormat = "@"
+Sheets("Consolidated_Schedule").Columns("I").NumberFormat = "0.00"
+Sheets("Consolidated_Schedule").Columns("N").NumberFormat = "0.00"
+Sheets("Consolidated_Schedule").Columns("J:K").NumberFormat = "dd-mmm-yyyy"
+Sheets("Consolidated_Schedule").Columns("I").NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+Sheets("Consolidated_Schedule").Columns("N").NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+Sheets("Consolidated_Schedule").Range("GR1").Value = "Updated Invoice From Dt"
+Sheets("Consolidated_Schedule").Range("GS1").Value = "Updated Invoice To Dt"
+Sheets("Consolidated_Schedule").Columns("GR:GS").NumberFormat = "dd-mmm-yyyy"
+
+Dim InvFrmdt As Date, ToperiodDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, InvAmt As Double, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+
+If LastRowInConsolidated_ScheduleSh > 3 Then
+
+    For i = 4 To LastRowInConsolidated_ScheduleSh
+        
+        InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+        
+        InvFrmdt = CDate(Sheets("Consolidated_Schedule").Range("J" & i).Value)
+        If Day(InvFrmdt) > 15 Then
+        InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+        End If
+        
+        Sheets("Consolidated_Schedule").Range("GR" & i).Value = InvFrmdt
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        If Day(ToperiodDt) > 15 Then
+        ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+        End If
+        Sheets("Consolidated_Schedule").Range("GS" & i).Value = ToperiodDt
+        
+        'No of Month Calculation
+        NoofMonth = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+        Sheets("Consolidated_Schedule").Range("U" & i).Value = NoofMonth
+        
+        'Monthly Amount Calculation
+        Sheets("Consolidated_Schedule").Range("V" & i).Value = InvAmt / NoofMonth
+        
+        
+    Next i
+
+
+
+
+
+
+
+
+'Sheets("Consolidated_Schedule").Range("U1").Value = "Days"
+'Sheets("Consolidated_Schedule").Range("U1").Font.Bold = True
+
+'Sheets("Consolidated_Schedule").Range("U4:U" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC10<>"""",RC11-RC10+1,"""")"
+
+'Sheets("Consolidated_Schedule").Range("V1").Value = "Daily Amount"
+'Sheets("Consolidated_Schedule").Range("V1").Font.Bold = True
+'Sheets("Consolidated_Schedule").Range("V4:V" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC21<>"""",RC9/RC21,"""")"
+
+'Splitting invoice data
+'No need to change the formula, just change the headers of the month and drag it till the end in the Consolidated_Schedule sheet
+'2015 Year Data
+Sheets("Consolidated_Schedule").Range("W4:AH" & LastRowInConsolidated_ScheduleSh).Clear
+'new one
+Sheets("Consolidated_Schedule").Range("W4:AH" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+Call OPeningCLosing1stYear_Conssch
+'old one
+'Sheets("Consolidated_Schedule").Range("W4:AH" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(RC22<>"""",RC22*((MAX(R3C-RC10,0)-MAX(EOMONTH(R3C,-1)-RC10,0))-(MAX(R3C-RC11,0)-MAX(EOMONTH(R3C,-1)-RC11,0))+(EOMONTH(R3C,0)=EOMONTH(RC10,0))),"""")"
+'Call OPeningCLosing1stYear_Conssch
+''Sheets("Consolidated_Schedule").Range("AI4:AI" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC23:RC34),2),"""")"
+''Sheets("Consolidated_Schedule").Range("AJ4:AJ" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",RC35,"""")"
+
+
+'2016 Year Data
+Sheets("Consolidated_Schedule").Range("AK4:AV" & LastRowInConsolidated_ScheduleSh).Clear
+Sheets("Consolidated_Schedule").Range("AK4:AV" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+Call OPeningCLosing2ndYear_Conssch
+'Sheets("Consolidated_Schedule").Range("AW4:AW" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC37:RC48),2),"""")"
+'Sheets("Consolidated_Schedule").Range("AX4:AX" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",RC49,"""")"
+
+'2017 Year Data
+Sheets("Consolidated_Schedule").Range("AY4:BJ" & LastRowInConsolidated_ScheduleSh).Clear
+Sheets("Consolidated_Schedule").Range("AY4:BJ" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+Call OPeningCLosing3rdYear_Conssch
+'Sheets("Consolidated_Schedule").Range("BK4:BK" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC51:RC62),2),"""")"
+'Sheets("Consolidated_Schedule").Range("BL4:BL" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",RC63,"""")"
+
+'2018 Year Data
+Sheets("Consolidated_Schedule").Range("BM4:BX" & LastRowInConsolidated_ScheduleSh).Clear
+Sheets("Consolidated_Schedule").Range("BM4:BX" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+Call OPeningCLosing4thYear_Conssch
+'Sheets("Consolidated_Schedule").Range("BY4:BY" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC65:RC76),2),"""")"
+'Sheets("Consolidated_Schedule").Range("BZ4:BZ" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",RC77,"""")"
+
+'2019 Year Data
+Sheets("Consolidated_Schedule").Range("CA4:CL" & LastRowInConsolidated_ScheduleSh).Clear
+Sheets("Consolidated_Schedule").Range("CA4:CL" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+Call OPeningCLosing5thYear_Conssch
+'Sheets("Consolidated_Schedule").Range("CM4:CM" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC79:RC90),2),"""")"
+'Sheets("Consolidated_Schedule").Range("CN4:CN" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",RC91,"""")"
+
+'2020 Year Data
+Sheets("Consolidated_Schedule").Range("CO4:CZ" & LastRowInConsolidated_ScheduleSh).Clear
+Sheets("Consolidated_Schedule").Range("CO4:CZ" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+Call OPeningCLosing6thYear_Conssch
+'Sheets("Consolidated_Schedule").Range("DA4:DA" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC93:RC104),2),"""")"
+'Sheets("Consolidated_Schedule").Range("DB4:DB" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",RC105,"""")"
+
+'2021 Year Data
+Sheets("Consolidated_Schedule").Range("DC4:DN" & LastRowInConsolidated_ScheduleSh).Clear
+Sheets("Consolidated_Schedule").Range("DC4:DN" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+Call OPeningCLosing7thYear_Conssch
+'Sheets("Consolidated_Schedule").Range("DO4:DO" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC107:RC118),2),"""")"
+'Sheets("Consolidated_Schedule").Range("DP4:DP" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",RC119,"""")"
+
+'2022 Year Data
+Sheets("Consolidated_Schedule").Range("DQ4:EB" & LastRowInConsolidated_ScheduleSh).Clear
+Sheets("Consolidated_Schedule").Range("DQ4:EB" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+Call OPeningCLosing8thYear_Conssch
+'Sheets("Consolidated_Schedule").Range("EC4:EC" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC121:RC132),2),"""")"
+'Sheets("Consolidated_Schedule").Range("ED4:ED" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",RC133,"""")"
+
+'2023 Year Data
+Sheets("Consolidated_Schedule").Range("EE4:EP" & LastRowInConsolidated_ScheduleSh).Clear
+Sheets("Consolidated_Schedule").Range("EE4:EP" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=IF(R3C=MEDIAN(RC200,EOMONTH(RC201,0),R3C),RC22,0)"
+'Sheets("Consolidated_Schedule").Range("EQ4:EQ" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=IF(RC22<>"""",ROUND(SUM(RC135:RC146),2),"""")"
+Call OPeningCLosing9thYear_Conssch
+
+'Sheets("Consolidated_Schedule").Range("ER4:ER" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = _
+        "=SUM(RC35,RC49,RC63,RC77,RC91,RC105,RC119,RC133,RC147)"
+
+
+'----------------------(NEW LOGIC FOR CATCHUP)
+Call Consolidated_Catchup_SameYearDiffMonth
+Call CatchupConsolidated_DiffYr
+
+
+'Calculate Differences at the end
+'Sheets("Consolidated_Schedule").Range("ES4:ES" & LastRowInConsolidated_ScheduleSh).FormulaR1C1 = "=RC9-RC148"
+
+'calculate Conditional formatting
+Dim rang As Range
+Set rang = Sheets("Consolidated_Schedule").Range("ES4:ES" & LastRowInConsolidated_ScheduleSh)
+Call ThreeColorCondFormatting(Sheets("Consolidated_Schedule"), rang)
+
+'Calculate grand total for every month
+'Dim i As Integer
+'For i = 23 To 147
+'    Sheet2.Cells(LastRowInConsolidated_ScheduleSh + 1, i).FormulaR1C1 = "=SUM(R4C" & i & ":R" & LastRowInConsolidated_ScheduleSh & "C" & i & ")"
+'Next i
+'
+'Sheets("Consolidated_Schedule").Range("V" & LastRowInConsolidated_ScheduleSh + 1).Value = "Total"
+'
+''Font : Bold Lastrow
+'Sheets("Consolidated_Schedule").Range(Sheet2.Cells(LastRowInConsolidated_ScheduleSh + 1, 22), Sheet2.Cells(LastRowInConsolidated_ScheduleSh + 1, 147)).Font.Bold = True
+
+Sheets("Consolidated_Schedule").Range("W4:EQ" & LastRowInConsolidated_ScheduleSh).NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+
+'Autofit Columns
+Sheets("Consolidated_Schedule").Columns("A:ES").AutoFit
+
+
+'Center Alignement of some certain columns
+Sheets("Consolidated_Schedule").Columns("A:C").HorizontalAlignment = xlCenter
+Sheets("Consolidated_Schedule").Columns("H").HorizontalAlignment = xlCenter
+Sheets("Consolidated_Schedule").Columns("J:L").HorizontalAlignment = xlCenter
+Sheets("Consolidated_Schedule").Columns("O:P").HorizontalAlignment = xlCenter
+
+'ApplyColorFormatting to opening and closing columns
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("AI4:AJ" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("AW4:AX" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("BK4:BL" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("BY4:BZ" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("CM4:CN" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("DA4:DB" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("DO4:DP" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("EC4:ED" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("CM4:CN" & LastRowInConsolidated_ScheduleSh), 15)
+Call ApplyInteriorColor_OpeningClosingColumns(Sheets("Consolidated_Schedule").Range("EQ4:EQ" & LastRowInConsolidated_ScheduleSh), 15)
+
+
+
+'Apply Border
+Sheets("Consolidated_Schedule").Range(Sheets("Consolidated_Schedule").Cells(4, 1), Sheets("Consolidated_Schedule").Cells(LastRowInConsolidated_ScheduleSh, LastColInConsolidated_ScheduleSh)).Borders.LineStyle = xlContinuous
+Sheets("Consolidated_Schedule").Range(Sheets("Consolidated_Schedule").Cells(4, 1), Sheets("Consolidated_Schedule").Cells(LastRowInConsolidated_ScheduleSh, LastColInConsolidated_ScheduleSh)).Borders.Colorindex = 16
+End If
+
+'Hide Columns
+Sheets("Consolidated_Schedule").Columns("ER:ES").Hidden = True
+
+End Function
+
+Public Function CalOpenCloseBal_YearlySch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Yearwise_Schedule").Range("X3").Value)
+OpeningYearDt = CDate(Sheets("Yearwise_Schedule").Range("X3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Yearwise_Schedule").Range("AI3").Value)
+For i = 4 To LastRowInYearwise_ScheduleSh
+    
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    
+    InvAmt = Sheets("Yearwise_Schedule").Range("I" & i).Value
+    Sheets("Yearwise_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+    
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'Old logic
+        'DailyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'Opening logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        Sheets("Yearwise_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Yearwise_Schedule").Range("AJ" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+Public Function DeleteDiff_ExceptZero_Yearlysh()
+Dim FindClosingBal As Integer
+
+On Error GoTo Exiting
+FindClosingBal = Application.WorksheetFunction.Match("Closing Bal", Sheets("Yearwise_Schedule").Range(Sheets("Yearwise_Schedule").Cells(3, 1) _
+                , Sheets("Yearwise_Schedule").Cells(3, LastColInYearwise_ScheduleSh)), 0)
+Sheets("Yearwise_Schedule").AutoFilterMode = False
+
+Sheets("Yearwise_Schedule").Range(Sheets("Yearwise_Schedule").Cells(3, 1), Sheets("Yearwise_Schedule").Cells(LastRowInYearwise_ScheduleSh, LastColInYearwise_ScheduleSh)). _
+AutoFilter Field:=FindClosingBal, Criteria1:="=0.00"
+If LastRowInYearwise_ScheduleSh = 3 Then
+    Sheets("Yearwise_Schedule").AutoFilterMode = False
+Else
+    Sheets("Yearwise_Schedule").Range(Sheets("Yearwise_Schedule").Cells(4, 1), Sheets("Yearwise_Schedule").Cells(LastRowInYearwise_ScheduleSh, LastColInYearwise_ScheduleSh)). _
+    EntireRow.Delete
+    Sheets("Yearwise_Schedule").AutoFilterMode = False
+End If
+Application.Goto (ThisWorkbook.Sheets("Yearwise_Schedule").Range("A1"))
+
+Exiting: Exit Function
+End Function
+

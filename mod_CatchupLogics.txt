@@ -1,0 +1,158 @@
+Public Function CatchUp_Logic_Yearly_Open()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date, CatchupDt As Date, CatchupMnth As String
+Dim i As Long, j As Integer, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysCatchup As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim FindCatcupMnth As Integer, CatchupAmt As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer, MonthsCatchup As Integer
+
+tempdate = CDate(Sheets("Yearwise_Schedule").Range("X3").Value)
+OpeningYearDt = CDate(Sheets("Yearwise_Schedule").Range("X3").Value)
+Opening_Date = tempdate - 31
+'        FindCatcupMnth = Application.WorksheetFunction.Match(Sheets("Yearwise_Schedule").Range("B" & i).Value, Sheets("Yearwise_Schedule").Range("X3:AI3"), 0)
+  '      If Not IsError(Application.Match(CatchupMnth, Sheets("Yearwise_Schedule").Range("X3:AI3"), 0)) Then
+       '         MsgBox "found"
+   '     End If
+'Debug.Print "Opening_Date: " & Opening_Date
+
+YearEndDt = CDate(Sheets("Yearwise_Schedule").Range("AI3").Value)
+i = 0
+For i = 4 To LastRowInYearwise_ScheduleSh
+    
+    CatchupMnth = Sheets("Yearwise_Schedule").Range("B" & i).Value
+    CatchupDt = WorksheetFunction.EoMonth(ChangeDate(CatchupMnth), 0)
+    
+    
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+        InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+        
+        
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+        ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    
+    'Old logic
+    'DaysCatchup = DateDiff("d", InvFrmdt, CatchupDt) + 1
+    'DailyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+    'CatchupAmt = DailyAmt * DaysCatchup
+    
+    'New logic
+    MonthsCatchup = DateDiff("m", InvFrmdt, CatchupDt) + 1
+    MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+    CatchupAmt = MonthlyAmt * MonthsCatchup
+    
+    
+    If Year(CatchupDt) > Year(InvFrmdt) And Year(CatchupDt) = Year(OpeningYearDt) Then
+        Sheets("Yearwise_Schedule").Range("W" & i).Value = 0   'set opening balance = 0
+        j = 0
+        For j = 24 To 35
+            If Sheets("Yearwise_Schedule").Cells(3, j).Text = CatchupMnth Then
+                Sheets("Yearwise_Schedule").Cells(i, j).Value = CatchupAmt
+                Sheets("Yearwise_Schedule").Range(Sheets("Yearwise_Schedule").Cells(i, 1), Sheets("Yearwise_Schedule").Cells(i, 20)).Interior.Colorindex = 6
+                Exit For
+            Else
+                Sheets("Yearwise_Schedule").Cells(i, j).Value = 0
+            End If
+        Next j
+     End If
+    
+    If Year(CatchupDt) = Year(InvFrmdt) And Year(CatchupDt) = Year(OpeningYearDt) Then
+        'here already opening balance will be zero so need to set it
+        If Month(CatchupDt) > Month(InvFrmdt) Then
+            j = 0
+            For j = 24 To 35
+                If Sheets("Yearwise_Schedule").Cells(3, j).Text = CatchupMnth Then
+                    Sheets("Yearwise_Schedule").Cells(i, j).Value = CatchupAmt
+                    Sheets("Yearwise_Schedule").Range(Sheets("Yearwise_Schedule").Cells(i, 1), Sheets("Yearwise_Schedule").Cells(i, 20)).Interior.Colorindex = 6
+                    Exit For
+                Else
+                    Sheets("Yearwise_Schedule").Cells(i, j).Value = 0
+                End If
+            Next j
+        End If
+    End If
+    
+Next i
+
+End Function
+
+Public Function Del_CatchupRecGreatThanCurYear()
+Dim BookingDate As Date, OpeningYearDt As Date, CatchupMnth As String
+Dim i As Long
+For i = LastRowInYearwise_ScheduleSh To 4 Step -1
+    OpeningYearDt = CDate(Sheets("Yearwise_Schedule").Range("X3").Value)
+    CatchupMnth = Sheets("Yearwise_Schedule").Range("B" & i).Value
+    BookingDate = WorksheetFunction.EoMonth(ChangeDate(CatchupMnth), 0)
+    If Year(BookingDate) > Year(OpeningYearDt) Then
+        Sheets("Yearwise_Schedule").Range("A" & i).EntireRow.Delete
+    End If
+Next i
+End Function
+Public Function CatchupConsolidated_SameYrButDiffMonth(ByVal OpeningYearDt As Date, ByVal StartPosOfLoop As Integer) '4th year template
+Dim CatchupMnth As String, InvFrmdt As Date, ToperiodDt As Date, CatchupDt As Date
+Dim i As Long, DaysCatchup As Integer, DailyAmt As Double, CatchupAmt As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer, MonthsCatchup As Integer
+
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    CatchupMnth = Sheets("Consolidated_Schedule").Range("B" & i).Value
+    CatchupDt = WorksheetFunction.EoMonth(ChangeDate(CatchupMnth), 0)
+    
+    'OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("AY3").Value)
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+        InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+        
+        
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+        ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    'Old logic
+    'DaysCatchup = DateDiff("d", InvFrmdt, CatchupDt) + 1
+    'DailyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+    'CatchupAmt = DailyAmt * DaysCatchup
+    
+    'New logic
+    MonthsCatchup = DateDiff("m", InvFrmdt, CatchupDt) + 1
+    MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+    CatchupAmt = MonthlyAmt * MonthsCatchup
+    
+
+    If Year(CatchupDt) = Year(InvFrmdt) And Year(CatchupDt) = Year(OpeningYearDt) Then
+        'here already opening balance will be zero so need to set it
+        If Month(CatchupDt) > Month(InvFrmdt) Then
+            j = 0
+            For j = StartPosOfLoop To StartPosOfLoop + 11
+                If Sheets("Consolidated_Schedule").Cells(3, j).Text = CatchupMnth Then
+                    Sheets("Consolidated_Schedule").Cells(i, j).Value = CatchupAmt
+                    Sheets("Consolidated_Schedule").Range(Sheets("Consolidated_Schedule").Cells(i, 1), Sheets("Consolidated_Schedule").Cells(i, 20)).Interior.Colorindex = 6
+                    Exit For
+                Else
+                    Sheets("Consolidated_Schedule").Cells(i, j).Value = 0
+                End If
+            Next j
+        End If
+    End If
+    
+Next i
+    
+End Function
+
+Public Function Consolidated_Catchup_SameYearDiffMonth()
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("W3").Value), 23) '2015 - 1st year template
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("AK3").Value), 37) '2016 - 2nd year template
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("AY3").Value), 51) '2017 - 3rd year template
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("BM3").Value), 65) '2018 - 4th year template
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("CA3").Value), 79) '2019 - 5th year template
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("CO3").Value), 93) '2020 - 6th year template
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("DC3").Value), 107) '2021 - 7th year template
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("DQ3").Value), 121) '2022 - 8th year template
+Call CatchupConsolidated_SameYrButDiffMonth(CDate(Sheets("Consolidated_Schedule").Range("EE3").Value), 135) '2023 - 9th year template
+End Function
+
+
+

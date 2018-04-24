@@ -1,0 +1,196 @@
+Public Function CallClearSchedule()
+    If LastRowInConsolidated_ScheduleSh <= 3 Then
+        MsgBox "No You cant Delete Headers", vbCritical, "VALIDATION"
+        Exit Function
+    Else
+    Sheets("Consolidated_Schedule").Range("W4:EQ" & LastRowInConsolidated_ScheduleSh + 1).Clear
+    Sheets("Consolidated_Schedule").Columns("GR:GS").Delete
+    Sheets("Consolidated_Schedule").Range("A4:V" & LastRowInConsolidated_ScheduleSh + 1).Clear
+    Application.Goto (Sheets("Consolidated_Schedule").Range("A1"))
+    End If
+End Function
+Public Function CallClearYearlySchedule()
+    Dim StartDate As Date
+    StartDate = CDate("1/31/2015")
+    Sheets("Yearwise_Schedule").Range("A1").Value = "Prepayment Amortisation Schedule For Year []"
+    Sheets("Yearwise_Schedule").Range("W2").Value = "[] Calender Year"
+    Sheets("Yearwise_Schedule").Range("X3").Value = StartDate
+    Sheets("Yearwise_Schedule").Range("X3").NumberFormat = "mmm-yy"
+    If LastRowInYearwise_ScheduleSh <= 3 Then
+        MsgBox "No You cant Delete Headers", vbCritical, "VALIDATION"
+        Exit Function
+    Else
+    Sheets("Yearwise_Schedule").Range("W4:AJ" & LastRowInYearwise_ScheduleSh + 1).Clear
+    Sheets("Yearwise_Schedule").Range("BY4:BZ" & LastRowInYearwise_ScheduleSh + 1).Clear
+    Sheets("Yearwise_Schedule").Range("AK4:AK" & LastRowInYearwise_ScheduleSh + 1).Clear
+    Sheets("Yearwise_Schedule").Range("A4:V" & LastRowInYearwise_ScheduleSh + 1).Clear
+    
+    
+    Application.Goto (Sheets("Yearwise_Schedule").Range("A1"))
+    End If
+End Function
+Public Function clearJournalData()
+Application.ScreenUpdating = False
+Call UnHide_HiddenSheets
+Call GoBackToOriginal_JournalFormat
+Call EraseJournalrelatedData
+Call Hide_HiddenSheets
+Application.Goto (Sheets("Yearwise_Schedule").Range("A1"))
+''Application.ScreenUpdating = True
+End Function
+Public Function ClearReconData()
+Application.ScreenUpdating = False
+Application.DisplayAlerts = False
+Call UnHide_HiddenSheets
+Sheets("Recon_TestingData").UsedRange.Delete
+Sheets("Recon_TestingData").UsedRange.Clear
+Sheets("Recon_TestingData").Columns("A:AZ").EntireColumn.Delete
+
+Application.Goto (ThisWorkbook.Sheets("Recon_TestingData").Range("A1"))
+Sheets("CurwiseDataForSelctBU").UsedRange.Clear
+Sheets("CurwiseDataForSelctBU").UsedRange.Delete
+Sheets("CurwiseDataForSelctBU").Columns("A:AZ").EntireColumn.Delete
+Application.Goto (ThisWorkbook.Sheets("CurwiseDataForSelctBU").Range("A1"))
+Call Reset_ReconciliationCURwise
+Call Reset_ReconTemplate
+Call EraseData_BUwiseCurData
+Call Hide_HiddenSheets
+Application.Goto (Sheets("Yearwise_Schedule").Range("A1"))
+Application.DisplayAlerts = True
+''Application.ScreenUpdating = True
+End Function
+
+Public Function GoBackToOriginal_JournalFormat()
+
+Sheet4.Name = "MMM-YY PP Releases CUR"
+Sheets("MMM-YY PP Releases CUR").Range("A1").Value = "[BU Description]"
+Sheets("MMM-YY PP Releases CUR").Range("B4").Value = "[BU]"
+Sheets("MMM-YY PP Releases CUR").Range("B6").Value = "[yyyy/0mm]"
+Sheets("MMM-YY PP Releases CUR").Range("B7").Value = "[SUN]"
+Sheets("MMM-YY PP Releases CUR").Range("B8").Value = "[M/DD/YYYY]"
+Sheets("MMM-YY PP Releases CUR").Range("B9").Value = "[CUR]"
+
+'First Row
+Sheets("MMM-YY PP Releases CUR").Range("A13").Value = 325200             'Account code
+Sheets("MMM-YY PP Releases CUR").Range("B13").Value = "[yyyy/0mm]"       'Period
+Sheets("MMM-YY PP Releases CUR").Range("C13").Value = 0             'Transaction Amount
+Sheets("MMM-YY PP Releases CUR").Range("D13").Value = "EPRE"             'Journal Type
+Sheets("MMM-YY PP Releases CUR").Range("E13").Value = "MMM-YY [BU] Prepayment Release"             'Description
+Sheets("MMM-YY PP Releases CUR").Range("F13").Value = "XXXX"             'Class of BU
+Sheets("MMM-YY PP Releases CUR").Range("G13").Value = "XXXX"             'Year of Account
+Sheets("MMM-YY PP Releases CUR").Range("H13").Value = "XXXX"             'Cost Centre
+Sheets("MMM-YY PP Releases CUR").Range("I13").Value = "[BU]"             'BU
+Sheets("MMM-YY PP Releases CUR").Range("J13").Value = "CZZZZZ"             'Supplier Code
+Sheets("MMM-YY PP Releases CUR").Range("K13").Value = "#"             'Project Code
+Sheets("MMM-YY PP Releases CUR").Range("L13").Value = "PP [MMM YY].xls"
+Sheets("MMM-YY PP Releases CUR").Range("M13").Value = "XXXXX"
+Sheets("MMM-YY PP Releases CUR").Range("N13").Value = "1;2;3"
+
+'Delete all remaining rows
+If LastRowInOriginalJournalSh4 > 13 Then
+Sheets("MMM-YY PP Releases CUR").Range("A14:A" & LastRowInOriginalJournalSh4).EntireRow.ClearContents
+End If
+Application.Goto (Sheets("MMM-YY PP Releases CUR").Range("A1"))
+End Function
+Public Function EraseJournalrelatedData()
+'After first row
+If LastRowInOriginalJournalSh4 > 13 Then
+    Sheets("MMM-YY PP Releases CUR").Range("A14:A" & LastRowInOriginalJournalSh4).EntireRow.Delete
+End If
+
+
+'Clear Testing Sheet data
+If LastRowIn_Testingsh_ColB > 1 Then
+    Sheets("Testing").Range("B2:B" & LastRowIn_Testingsh_ColB).Clear
+End If
+
+If LastRowIn_Testingsh_ColE > 1 Then
+    Sheets("Testing").Range("E2:E" & LastRowIn_Testingsh_ColE).Clear
+End If
+
+'Clear Testing_Data data
+Sheets("Testing_Data").Columns("A:AJ").Delete
+
+'Clear FinalData-Curwise sheet data
+Sheets("FinalData_Curwise").Columns("A:AJ").Delete
+
+Application.Goto (Sheets("FinalData_Curwise").Range("A1"))
+
+Application.Goto (Sheets("Testing_Data").Range("A1"))
+
+Application.Goto (Sheets("Testing").Range("A1"))
+
+End Function
+Sub CallPrepayForm()
+Unload PrepayEntryForm
+PrepayEntryForm.Show
+End Sub
+Sub CallExcelUploading()
+ExcelUploadDB.Txt_DumpPath.Value = ""
+ExcelUploadDB.Show
+End Sub
+Sub CallPrepaySchedule()
+Unload ScheduleConsolidated
+ScheduleConsolidated.Show
+End Sub
+Sub callPrepaySchedule_Yearly()
+Unload ScheduleYearly
+ScheduleYearly.Show
+End Sub
+Sub CallJournalScreationFrm()
+JournalCreation.CmbBox_BU = ""
+JournalCreation.TxtPeriod = ""
+JournalCreation.TxtBox_BU = ""
+Unload JournalCreation
+JournalCreation.Show
+End Sub
+Sub CallFrm_Recon()
+Frm_Recon.CmbBox_BU = ""
+Frm_Recon.TxtBox_BU = ""
+Frm_Recon.TxtPeriod = ""
+Unload Frm_Recon
+Frm_Recon.Show
+End Sub
+Function GoToUpdateMastersTblSheet()
+Dim Myvalue As Variant
+If MsgBox("Do you want to open Master table Sheet?", vbYesNo, "Open Master Sheet") = vbYes Then
+    Myvalue = InputBox("Enter Password", "Master Sheet Access")
+    If Myvalue = "growwithus" Then
+        If MasterSheet.Visible = xlSheetVeryHidden Then
+           MasterSheet.Visible = xlSheetVisible
+           Application.Goto (ThisWorkbook.Sheets("Master").Range("A1"))
+        End If
+    Else
+        MsgBox "Wrong Password.Please Try Again !!!", vbCritical, "Incorrect Password Window"
+    End If
+End If
+End Function
+Function CloseMasterTblSheet()
+If MasterSheet.Visible = xlSheetHidden Then
+    MasterSheet.Visible = xlSheetVeryHidden
+End If
+If MasterSheet.Visible = xlSheetVisible Then
+    MasterSheet.Visible = xlSheetVeryHidden
+End If
+End Function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,165 @@
+FrmRecon Form :- Generate button
+--------------------------------
+
+Private Sub CmbBox_BU_Change()
+'TxtPeriod.SetFocus
+' check to see if anything has been selected in combobox
+If CmbBox_BU.ListIndex = -1 Then
+'MsgBox "No data in Supplier Code list"
+Exit Sub
+End If
+
+If Fun_DBCon = False Then
+    GoTo Err
+End If
+
+On Error GoTo Err
+    
+   
+    Set gl_DBRs = New ADODB.Recordset
+     
+    gl_DBRs.ActiveConnection = gl_DBConn
+    gl_DBRs.Open "select BusinessDesc from Mst_BusinessUnit Where BusinessUnit = '" & CmbBox_BU.Value & "'", , adOpenKeyset, adLockPessimistic
+    
+    gl_DBRs.MoveFirst
+    
+    If Not gl_DBRs.EOF Then
+        TxtBox_BU.Value = gl_DBRs.Fields("BusinessDesc").Value
+        'Txt_InvNo.SetFocus
+    Else
+        MsgBox "No Record Found", vbExclamation, "BU Description Selection"
+    End If
+    
+    gl_DBRs.Close
+    
+    TxtPeriod.SetFocus
+    Exit Sub
+Err:
+     MsgBox Err.Number & vbCrLf & Err.Description, vbCritical, "Error!"
+    gl_DBRs.Close
+    Set gl_DBRs = Nothing
+    Set gl_DBCmd = Nothing
+    Set gl_DBConn = Nothing
+    MsgBox "Database Error while matching BU Description from Business Unit selection!", vbCritical + vbOKOnly, "Error"
+End Sub
+
+Private Sub CmBtn_Generate_Click()
+Application.ScreenUpdating = False
+If ValidateFrmReconContents = True Then
+    Application.ScreenUpdating = False
+    Dim Year_Journal As String, i As Integer, ActiveCurrency As String
+    Application.Goto (Sheets("Yearwise_Schedule").Range("A1"))
+    If LastRowInYearwise_ScheduleSh > 3 Then
+        Year_Journal = Year(CDate(Sheets("Yearwise_Schedule").Range("X3").Value))
+        
+        
+        
+        If Year(ChangeDate(TxtPeriod)) = Year(CDate(Sheets("Yearwise_Schedule").Range("X3").Value)) Then
+            Frm_Recon.Hide
+             'First Erase Data in BuwiseCurData
+            Call ClearReconData
+'             Call clearJournalData 'Reset all
+            Call UnHide_HiddenSheets   'Unhide sheets
+            If MoveSelectedBU_YearlyschToReconTestingData = True Then 'data present i Recon_TestingData Sheet
+                '''''''''Call DeleteZeroClosingBal_Reconsh 'now delete any zero closing balance data
+                    
+                '*****IMP Change******
+                'Call DeleteZeroBal_Reconsh 'currently using this logic for selected month deleted any zero balances
+                
+                
+                'Maintain BU value in BUwiseCurData and calculate unique currecies for it
+                Sheets("BUwiseCurData").Range("B2").Value = Trim(Frm_Recon.CmbBox_BU.Value)
+                If UniqueCurrency_ReconTestingsh = True Then
+                Sheets("BUwiseCurData").Range("F2:F10").FormulaR1C1 = _
+                    "=IF(RC5<>"""",SUMPRODUCT((Recon_TestingData!R2C8:R" & Lastrowin_ReconTestingData & "C8=RC5)*(Recon_TestingData!R1C1:R1C" & LastColRecon_TestingData & "=""Closing Balance"")*(Recon_TestingData!R2C" & LastColRecon_TestingData & ":R" & Lastrowin_ReconTestingData & "C" & LastColRecon_TestingData & ")),"""")"
+                    Call WbAddRecon
+                    'Following loop is used to generate currency wise sheets in another workbook and save those changes
+                        For i = 2 To LastRowIn_BuCurwiseData_ColE
+                            ActiveCurrency = Sheets("BUwiseCurData").Range("E" & i).Value
+                            Call MoveCurwiseData_ForSelectBUsh(ActiveCurrency)
+                            'Call CreateCurWiseRecon(ActiveCurrency)
+                        Next i
+                        format_CurwiseDataforSelectBU
+                    Call ReconRpt_Export
+                    Call CreateReconTemplate
+                    Call CloseWB(ExportRecon_CUR)
+                    'Again reset all the data
+                     Call ClearReconData
+                     
+                    Application.Goto (ThisWorkbook.Sheets("Yearwise_Schedule").Range("A1"))
+                    MsgBox "File Saved in the Folder:- Reconciliation Output" + vbNewLine + "Filename:- " + ExportRecon_CUR, vbInformation, "VALIDATION"
+                    'Exit Sub
+                Else
+                     Call ClearReconData
+                     MsgBox "No data exist for selected criteria", vbExclamation, "VALIDATION"
+                End If
+               
+            Else
+                Call ClearReconData
+               MsgBox "No data exist for selected criteria", vbExclamation, "VALIDATION"
+            End If
+'             If Unique_Currency = True Then 'this function returns true if there exists any unique currency in the Testing sheet
+'                If LastRowIn_Testingsh_ColE > 1 Then   'Any currency existing or not
+'                   Call WbAddJournal  'it is used to create and open the File to carry out the operation
+'                   For i = 2 To LastRowIn_Testingsh_ColE    'Currencywise operation to be performed
+'                       ActiveCurrency = Sheets("Testing").Range("E" & i).Value
+'                       Call MoveCurwiseResult_Finalsh(ActiveCurrency) 'Now we have the result in Sheet:- FinalData_Curwise
+'                       Call CreateCurWiseJournal(ActiveCurrency)
+'                   Next i
+'                   Call ClosewbJOurnal 'It is used to close the exported data workbook
+'                   Call clearJournalData 'Again reset all
+'                   Application.GoTo (ThisWorkbook.Sheets("Yearwise_Schedule").Range("A1"))
+'                   MsgBox "File Saved in the Folder:- Journal Output" + vbNewLine + "Filename:- " + ExportJournal_CUR, vbInformation, "VALIDATION"
+'                End If
+'            Else
+'                Call clearJournalData 'Again reset all
+'                MsgBox "No data exist for selected criteria", vbExclamation, "VALIDATION"
+'            End If
+             Call Hide_HiddenSheets 'Hide Sheets
+        Else
+            MsgBox "Wrong Selection!! Plz select month from year " & Year_Journal & vbNewLine + " for which yearwise schedule has been generated", vbCritical, "VALIDATION"
+        End If
+    Else
+            Frm_Recon.Hide
+            Unload Frm_Recon
+            MsgBox "No Data !! First Generate Yearly Schedule Report" & vbNewLine & "and then click on Generate Journal", vbCritical, "VALIDATION"
+
+    End If
+    'Application.ScreenUpdating = True
+End If
+
+End Sub
+
+Private Sub CmdBtn_Clear_Click()
+'Reset Frm
+CmbBox_BU = ""
+TxtPeriod = ""
+TxtBox_BU = ""
+End Sub
+
+Private Sub Image_month_Click()
+Dim Datevariable As Date
+Dim tempdate As Date
+Datevariable = CalendarForm.GetDate(SelectedDate:=tempdate, _
+               FirstDayOfWeek:=Monday, _
+        DateFontSize:=8, _
+        ShowWeekNumbers:=True, _
+        BackgroundColor:=RGB(243, 249, 251), _
+        HeaderColor:=RGB(147, 205, 2221), _
+        HeaderFontColor:=RGB(255, 255, 255), _
+        SubHeaderColor:=RGB(223, 240, 245), _
+        SubHeaderFontColor:=RGB(31, 78, 120), _
+        DateColor:=RGB(243, 249, 251), _
+        DateFontColor:=RGB(31, 78, 120), _
+        TrailingMonthFontColor:=RGB(155, 194, 230), _
+        DateHoverColor:=RGB(223, 240, 245), _
+        DateSelectedColor:=RGB(202, 223, 242), _
+        SaturdayFontColor:=RGB(0, 176, 240), _
+        SundayFontColor:=RGB(0, 176, 240), _
+        TodayFontColor:=RGB(0, 176, 80))
+    If Datevariable <> 0 Then Frm_Recon.TxtPeriod.Value = Format(Datevariable, "MMM-YY")
+End Sub
+
+Private Sub UserForm_Initialize()
+Call Initialize_FrmRecon
+End Sub

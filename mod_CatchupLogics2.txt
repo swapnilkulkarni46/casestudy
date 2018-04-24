@@ -1,0 +1,123 @@
+Option Explicit
+Public Function CatchupConsolidated_DiffYr() 'testing 12,19,21
+Dim CatchupMnth As String, InvFrmdt As Date, ToperiodDt As Date, CatchupDt As Date, OpeningYearDt As Date
+Dim i As Long, j As Long, k As Long, DaysCatchup As Integer, DailyAmt As Double, CatchupAmt As Double
+Dim CountClosingBal As Integer, NoOfDays As Integer
+Dim YearEndDt As Date, tempdate As Date, Opening_Date As Date
+Dim Opening_Bal As Double, InvAmt As Double, DaysinYear As Double, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer, MonthsCatchup As Integer
+Dim Exiting As Boolean
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    CatchupMnth = Sheets("Consolidated_Schedule").Range("B" & i).Value
+    CatchupDt = WorksheetFunction.EoMonth(ChangeDate(CatchupMnth), 0)
+    
+    'OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("W3").Value)
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+        InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+        
+        
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+        ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+    
+    'Old logic
+    'DaysCatchup = DateDiff("d", InvFrmdt, CatchupDt) + 1
+    'DailyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+    'CatchupAmt = DailyAmt * DaysCatchup
+    
+    'New logic
+    MonthsCatchup = DateDiff("m", InvFrmdt, CatchupDt) + 1
+    MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+    CatchupAmt = MonthlyAmt * MonthsCatchup
+    
+    If Year(CatchupDt) > Year(InvFrmdt) Then
+        j = 0
+        For j = 23 To 146
+            'catchup case found (BMonth > Fromperiod)
+            CountClosingBal = 0 'it is used to count total no of closing balance columns in the row
+            If Sheets("Consolidated_Schedule").Cells(3, j).Text = CatchupMnth Then
+                Sheets("Consolidated_Schedule").Cells(i, j).Value = CatchupAmt
+                Sheets("Consolidated_Schedule").Range(Sheets("Consolidated_Schedule").Cells(i, 1), Sheets("Consolidated_Schedule").Cells(i, 20)).Interior.Colorindex = 6
+                'Now find Closing Bal Columns and adjust the formula
+                k = 0 'reset everytime
+                Exiting = False
+                For k = j To 146
+                    If Sheets("Consolidated_Schedule").Cells(3, k).Value Like "Closing*" Then
+                        'reset to period as it changes to yearend date when we
+                        'ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+                        CountClosingBal = CountClosingBal + 1
+                        OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Cells(3, k - 12).Value)
+                        YearEndDt = CDate(Sheets("Consolidated_Schedule").Cells(3, k - 1).Value)
+                        tempdate = CDate(Sheets("Consolidated_Schedule").Cells(3, k - 12).Value)
+                        Opening_Date = tempdate - 31
+
+                        If ToperiodDt > YearEndDt Then
+                            
+                            ToperiodDt = YearEndDt
+                        Else
+                            Exiting = True
+                        End If
+                        
+                        'NoOfDays = Opening_Date - InvFrmdt + 1
+                        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+                        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+                        
+                        If Year(CatchupDt) = Year(OpeningYearDt) Then
+                            Opening_Bal = 0
+                        Else
+                            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+                            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+                        End If
+                        If Opening_Bal = 0 Then
+                            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+                            'YearlyAmmort = DaysinYear * DailyAmt
+                            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+                            YearlyAmmort = MonthInYear * MonthlyAmt
+                            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+                        Else
+                            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+                            'YearlyAmmort = DaysinYear * DailyAmt
+                            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+                            YearlyAmmort = MonthInYear * MonthlyAmt
+                            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+                        End If
+                        If Year(CatchupDt) > Year(Opening_Date + 1) Then
+                        ClosingBal = 0
+                        End If
+                        
+'                        If CountClosingBal = 1 Then '1st year Closing Column found
+'
+'
+'                            DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+'                            YearlyAmmort = DaysinYear * DailyAmt
+'                            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+'                        End If
+                        
+                        Sheets("Consolidated_Schedule").Cells(i, k).Value = ClosingBal
+                        
+                        If Sheets("Consolidated_Schedule").Cells(3, k + 1).Value Like "Opening*" Then
+                            Sheets("Consolidated_Schedule").Cells(i, k + 1).Value = ClosingBal
+                        End If
+                    End If
+                    
+                    If Exiting = True Then
+                        Exit For
+                    End If
+                    
+                Next k
+                Exit For
+            Else
+                Sheets("Consolidated_Schedule").Cells(i, j).Value = 0
+            End If
+        Next j
+        
+    End If
+    
+Next i
+    
+End Function

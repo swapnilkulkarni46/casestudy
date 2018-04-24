@@ -1,0 +1,728 @@
+Public Function OPeningCLosing1stYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("W3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("W3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("AH3").Value)
+
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("AI" & i).Value = ClosingBal
+        Sheets("Consolidated_Schedule").Range("AJ" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function OPeningCLosing2ndYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("AK3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("AK3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("AV3").Value)
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("AW" & i).Value = ClosingBal
+        Sheets("Consolidated_Schedule").Range("AX" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function OPeningCLosing3rdYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("AY3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("AY3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("BJ3").Value)
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("BK" & i).Value = ClosingBal
+        Sheets("Consolidated_Schedule").Range("BL" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function OPeningCLosing4thYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("BM3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("BM3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("BX3").Value)
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("BY" & i).Value = ClosingBal
+        Sheets("Consolidated_Schedule").Range("BZ" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function OPeningCLosing5thYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("CA3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("CA3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("CL3").Value)
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("CM" & i).Value = ClosingBal
+        Sheets("Consolidated_Schedule").Range("CN" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function OPeningCLosing6thYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("CO3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("CO3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("CZ3").Value)
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("DA" & i).Value = ClosingBal
+        Sheets("Consolidated_Schedule").Range("DB" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function OPeningCLosing7thYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("DC3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("DC3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("DN3").Value)
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("DO" & i).Value = ClosingBal
+        Sheets("Consolidated_Schedule").Range("DP" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function OPeningCLosing8thYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("DQ3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("DQ3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("EB3").Value)
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("EC" & i).Value = ClosingBal
+        Sheets("Consolidated_Schedule").Range("ED" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function OPeningCLosing9thYear_Conssch()
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, YearEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = CDate(Sheets("Consolidated_Schedule").Range("EE3").Value)
+OpeningYearDt = CDate(Sheets("Consolidated_Schedule").Range("EE3").Value)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+YearEndDt = CDate(Sheets("Consolidated_Schedule").Range("EP3").Value)
+For i = 4 To LastRowInConsolidated_ScheduleSh
+    InvFrmdt = CDate(Sheets("Yearwise_Schedule").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Yearwise_Schedule").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvAmt = Sheets("Consolidated_Schedule").Range("I" & i).Value
+   ' Sheets("Consolidated_Schedule").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+        ToperiodDt = CDate(Sheets("Consolidated_Schedule").Range("K" & i).Value)
+        
+        If ToperiodDt > YearEndDt Then
+            ToperiodDt = YearEndDt
+        End If
+        ''DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        ''Debug.Print "tempdate: " & TempDate
+        
+        'old logic
+        'DailyAmt = Sheets("Consolidated_Schedule").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Yearwise_Schedule").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+            Opening_Bal = 0
+        Else
+            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+        End If
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+        If Year(InvFrmdt) > Year(Opening_Date + 1) Then
+        ClosingBal = 0
+        End If
+        
+       ' Sheets("Consolidated_Schedule").Range("W" & i).Value = Opening_Bal
+        Sheets("Consolidated_Schedule").Range("EQ" & i).Value = ClosingBal
+       ' Sheets("Consolidated_Schedule").Range("ED" & i).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

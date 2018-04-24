@@ -1,0 +1,423 @@
+Public Function CalOpenCloseBal_MonthlySch(ByVal FindMnth As Integer)
+Application.ScreenUpdating = False
+Dim tempdate As Date, Opening_Date As Date, InvFrmdt As Date, ToperiodDt As Date, OpeningYearDt As Date, Select_MonthEndDt As Date
+Dim i As Long, NoOfDays As Integer, Opening_Bal As Double, DailyAmt As Double, InvAmt As Double, DaysinYear As Integer, YearlyAmmort As Double, ClosingBal As Double
+Dim MonthlyAmt As Double, NoofMonth As Integer, MonthInYear As Integer
+
+tempdate = WorksheetFunction.EoMonth(ChangeDate(Sheets("Recon_TestingData").Range("X1").Value), 0)
+OpeningYearDt = WorksheetFunction.EoMonth(ChangeDate(Sheets("Recon_TestingData").Range("X1").Value), 0)
+Opening_Date = tempdate - 31
+'Debug.Print "Opening_Date: " & Opening_Date
+
+Select_MonthEndDt = WorksheetFunction.EoMonth(ChangeDate(Sheets("Recon_TestingData").Cells(1, FindMnth).Value), 0)
+
+For i = 2 To Lastrowin_ReconTestingData
+    InvFrmdt = CDate(Sheets("Recon_TestingData").Range("J" & i).Value)
+    If Day(InvFrmdt) > 15 Then
+    InvFrmdt = (InvFrmdt - Day(InvFrmdt) + 1) + 31
+    End If
+    
+    ToperiodDt = CDate(Sheets("Recon_TestingData").Range("K" & i).Value)
+    If Day(ToperiodDt) > 15 Then
+    ToperiodDt = (ToperiodDt - Day(ToperiodDt) + 1) + 31
+    End If
+    
+    InvFrmdt = CDate(Sheets("Recon_TestingData").Range("J" & i).Value)
+    InvAmt = Sheets("Recon_TestingData").Range("I" & i).Value
+   ' Sheets("Recon_TestingData").Range("W" & i).Value = 0
+   ' If Opening_Date > InvFrmDt Then
+        
+      '  ToperiodDt = CDate(Sheets("Recon_TestingData").Range("K" & i).Value)
+        
+        If ToperiodDt > Select_MonthEndDt Then
+            ToperiodDt = Select_MonthEndDt
+        End If
+        'DaysinYear = DateDiff("d", CDate("1/1/" & Year(dt)), dt) + 1
+        
+        'Debug.Print "tempdate: " & TempDate
+        
+        'old
+        'DailyAmt = Sheets("Recon_TestingData").Range("V" & i).Value
+        'NoOfDays = Opening_Date - InvFrmdt + 1
+        
+        'new logic
+        MonthlyAmt = Sheets("Recon_TestingData").Range("V" & i).Value
+        NoofMonth = DateDiff("m", InvFrmdt, Opening_Date) + 1
+        
+        'opening balance logic
+'        If Year(InvFrmdt) = Year(OpeningYearDt) Then
+'            Opening_Bal = 0
+'        Else
+'            'Opening_Bal = Round(InvAmt - (NoOfDays * DailyAmt), 2)
+'            Opening_Bal = Round(InvAmt - (NoofMonth * MonthlyAmt), 2)
+'        End If
+        
+        Opening_Bal = Sheets("Recon_TestingData").Range("W" & i).Value
+        
+        'Closing balance logic
+        If Opening_Bal = 0 Then
+            'DaysinYear = DateDiff("d", InvFrmdt, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", InvFrmdt, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(InvAmt - YearlyAmmort, 2)
+            
+        Else
+            'DaysinYear = DateDiff("d", OpeningYearDt - 30, ToperiodDt) + 1
+            'YearlyAmmort = DaysinYear * DailyAmt
+            MonthInYear = DateDiff("m", OpeningYearDt - 30, ToperiodDt) + 1
+            YearlyAmmort = MonthInYear * MonthlyAmt
+            ClosingBal = Round(Opening_Bal - YearlyAmmort, 2)
+        End If
+        
+       ' Sheets("Recon_TestingData").Range("W" & i).Value = Opening_Bal
+        
+        Sheets("Recon_TestingData").Cells(1, FindMnth + 1).Value = "Closing Balance"
+        Sheets("Recon_TestingData").Cells(1, FindMnth + 1).Font.Bold = True
+        Sheets("Recon_TestingData").Cells(i, FindMnth + 1).Value = ClosingBal
+   ' End If
+Next i
+End Function
+
+Public Function DeleteZeroClosingBal_Reconsh()
+Application.ScreenUpdating = False
+Dim Findstring As String
+Findstring = Frm_Recon.TxtPeriod.Text
+Dim FindMonth As Integer
+
+On Error GoTo Exiting
+FindMonth = Application.WorksheetFunction.Match(Findstring, Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(1, 1) _
+                , Sheets("Recon_TestingData").Cells(1, LastColRecon_TestingData)), 0)
+Sheets("Recon_TestingData").AutoFilterMode = False
+
+Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(1, 1), Sheets("Recon_TestingData").Cells(Lastrowin_ReconTestingData, LastColRecon_TestingData)). _
+AutoFilter Field:=FindMonth + 1, Criteria1:="=0.00"
+If Lastrowin_ReconTestingData = 1 Then
+
+    Sheets("Recon_TestingData").AutoFilterMode = False
+
+Else
+    
+    Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(2, 1), _
+    Sheets("Recon_TestingData").Cells(Lastrowin_ReconTestingData, _
+    LastColRecon_TestingData)).EntireRow.Delete
+    
+    Sheets("Recon_TestingData").AutoFilterMode = False
+
+End If
+Application.Goto (ThisWorkbook.Sheets("Recon_TestingData").Range("A1"))
+''Application.ScreenUpdating = True
+Exiting: Exit Function
+End Function
+Public Function DeleteZeroBal_Reconsh()
+Application.ScreenUpdating = False
+Dim Findstring As String
+Findstring = Frm_Recon.TxtPeriod.Text
+Dim FindMonth As Integer
+
+On Error GoTo Exiting
+FindMonth = Application.WorksheetFunction.Match(Findstring, Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(1, 1) _
+                , Sheets("Recon_TestingData").Cells(1, LastColRecon_TestingData)), 0)
+Sheets("Recon_TestingData").AutoFilterMode = False
+
+Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(1, 1), Sheets("Recon_TestingData").Cells(Lastrowin_ReconTestingData, LastColRecon_TestingData)). _
+AutoFilter Field:=FindMonth, Criteria1:="=0.00"
+If Lastrowin_ReconTestingData = 1 Then
+
+    Sheets("Recon_TestingData").AutoFilterMode = False
+
+Else
+    
+    Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(2, 1), _
+    Sheets("Recon_TestingData").Cells(Lastrowin_ReconTestingData, _
+    LastColRecon_TestingData)).EntireRow.Delete
+    
+    Sheets("Recon_TestingData").AutoFilterMode = False
+
+End If
+Application.Goto (ThisWorkbook.Sheets("Recon_TestingData").Range("A1"))
+''Application.ScreenUpdating = True
+Exiting: Exit Function
+End Function
+Public Function UniqueCurrency_ReconTestingsh() As Boolean
+Application.ScreenUpdating = False
+'Count no of distinct Currency
+        If Lastrowin_ReconTestingData = 1 Then
+            UniqueCurrency_ReconTestingsh = False
+            Exit Function
+        End If
+        
+        'Copy Paste using pastespecial
+        'Sheets("Recon_TestingData").Range("H2:H" & Lastrowin_ReconTestingData).Copy
+        'Sheets("BUwiseCurData").Range("E2").PasteSpecial Paste:=xlValues
+        'Application.CutCopyMode = False
+            'or
+        'Copy paste using values
+        Sheets("BUwiseCurData").Range("E2:E" & Lastrowin_ReconTestingData).Value _
+            = Sheets("Recon_TestingData").Range("H2:H" & Lastrowin_ReconTestingData).Value
+                
+        'now check for duplicates
+        Sheets("BUwiseCurData").Range("$E$1:$E$" & LastRowIn_BuCurwiseData_ColE).RemoveDuplicates Columns:=1, Header:=xlYes
+        Application.Goto (ThisWorkbook.Sheets("BUwiseCurData").Range("A1"))
+        Application.Goto (ThisWorkbook.Sheets("Recon_TestingData").Range("A1"))
+        UniqueCurrency_ReconTestingsh = True
+        
+        
+'Application.ScreenUpdating = True
+End Function
+
+Public Function EraseData_BUwiseCurData()
+'Clear Testing Sheet data
+If LastRowIn_BuCurwiseData_ColB > 1 Then
+    Sheets("BUwiseCurData").Range("B2:B" & LastRowIn_BuCurwiseData_ColB).Clear
+End If
+
+If LastRowIn_BuCurwiseData_ColE > 1 Then
+    Sheets("BUwiseCurData").Range("E2:E" & LastRowIn_BuCurwiseData_ColE).Clear
+End If
+
+Sheets("BUwiseCurData").Range("F2:F10").Clear
+
+
+'Clear Testing_Data data
+Sheets("Recon_TestingData").Columns("A:AZ").Delete
+
+End Function
+
+Public Function Reset_ReconTemplate()
+Application.ScreenUpdating = False
+Sheet11.Name = "Front Sheet - BUName 325200"
+
+Sheet11.Range("B3").Value = "[yyyy/0mm]"
+Sheet11.Range("B4").Value = 325200
+Sheet11.Range("B5").Value = "Prepayment Reconciliation"
+
+If Lastrowin_Frontsheet > 7 Then
+    Sheet11.Range("B8:B" & Lastrowin_Frontsheet).EntireRow.Delete
+End If
+
+Application.Goto (Sheets("Front Sheet - BUName 325200").Range("A1"))
+
+End Function
+
+Public Function Reset_ReconciliationCURwise()
+Application.ScreenUpdating = False
+Sheet14.Name = "MMM YY PP Rec (CUR)"
+Sheet14.Columns("A:AZ").Delete
+End Function
+
+Public Function MoveCurwiseData_ForSelectBUsh(ByVal ActiveCur As String)
+Application.ScreenUpdating = False
+Dim FindCur As Integer
+Dim ActiveBU As String, ActiveBUDesc As String, TransDt As Date, NewSheetName As String, periodDt As String
+Dim i As Integer, j As Integer, FindSelectMonth As Integer
+ActiveBU = Frm_Recon.CmbBox_BU.Text
+ActiveBUDesc = Trim(Frm_Recon.TxtBox_BU.Text)
+periodDt = PeriodString(Frm_Recon.TxtPeriod) 'It Converts dt in format [yyyy/0mm]
+TransDt = WorksheetFunction.EoMonth(ChangeDate(Frm_Recon.TxtPeriod), 0)
+
+
+'First Clear all the data
+NewSheetName = Format(TransDt, "MMM-YY") + " " + "Prepayment Open Invoices Details" + " (" + Trim(ActiveCur) + ")"
+
+Sheets("CurwiseDataForSelctBU").Range("A" & lastrowin_CurwiseDataForSelctBU + 2).Value = NewSheetName
+'Sheets("CurwiseDataForSelctBU").Range("A" & lastrowin_CurwiseDataForSelctBU + 1).WrapText = False
+'Sheets("CurwiseDataForSelctBU").Range("A" & lastrowin_CurwiseDataForSelctBU + 1).WrapText = True
+Sheets("CurwiseDataForSelctBU").Range("A" & lastrowin_CurwiseDataForSelctBU + 1).Font.Bold = True
+
+On Error GoTo Exiting
+FindCur = Application.WorksheetFunction.Match("Invoice Currency", Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(1, 1) _
+                , Sheets("Recon_TestingData").Cells(1, LastColRecon_TestingData)), 0)
+Sheets("Recon_TestingData").AutoFilterMode = False
+
+Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(1, 1), Sheets("Recon_TestingData").Cells(Lastrowin_ReconTestingData, LastColRecon_TestingData)). _
+AutoFilter Field:=FindCur, Criteria1:=ActiveCur
+
+If Lastrowin_ReconTestingData = 1 Then
+    Sheets("Recon_TestingData").AutoFilterMode = False
+Else 'data will be present always because we have filtered out the unique currency in Testing Sheet
+    Sheets("Recon_TestingData").Range(Sheets("Recon_TestingData").Cells(1, 1), Sheets("Recon_TestingData").Cells(Lastrowin_ReconTestingData, LastColRecon_TestingData)). _
+    Copy
+    Sheets("CurwiseDataForSelctBU").Range("A" & lastrowin_CurwiseDataForSelctBU + 1).PasteSpecial xlPasteAll
+    Application.CutCopyMode = False
+    'Sheets("CurwiseDataForSelctBU").Columns("B:AZ").AutoFit
+    Application.Goto (ThisWorkbook.Sheets("CurwiseDataForSelctBU").Range("A1"))
+    Sheets("Recon_TestingData").AutoFilterMode = False
+End If
+
+Application.Goto (ThisWorkbook.Sheets("Recon_TestingData").Range("A1"))
+
+
+Exiting: Exit Function
+
+
+End Function
+Public Function format_CurwiseDataforSelectBU()
+Application.ScreenUpdating = False
+Dim FindClosingBal As Integer
+Dim ActiveBU As String, ActiveBUDesc As String, TransDt As Date, NewSheetName As String, periodDt As String
+Dim i As Integer, j As Integer, FindSelectMonth As Integer, Dynamic_Lastcol As Integer
+Dim SumOfInvs As Double
+SumOfInvs = 0
+ActiveBU = Frm_Recon.CmbBox_BU.Text
+ActiveBUDesc = Trim(Frm_Recon.TxtBox_BU.Text)
+periodDt = PeriodString(Frm_Recon.TxtPeriod) 'It Converts dt in format [yyyy/0mm]
+TransDt = WorksheetFunction.EoMonth(ChangeDate(Frm_Recon.TxtPeriod), 0)
+SearchString = Format(TransDt, "MMM-YY") + "*"
+Sheets("CurwiseDataForSelctBU").Columns("B:AZ").AutoFit
+
+
+                
+For i = 1 To lastrowin_CurwiseDataForSelctBU + 20
+    If Sheets("CurwiseDataForSelctBU").Cells(i, 1).Value Like SearchString Then
+        Dynamic_Lastcol = Sheets("CurwiseDataForSelctBU").Cells(i + 1, Sheets("CurwiseDataForSelctBU").Columns.Count).End(xlToLeft).Column
+        FindClosingBal = Application.WorksheetFunction.Match("Closing Balance", Sheets("CurwiseDataForSelctBU").Range(Sheets("CurwiseDataForSelctBU").Cells(i + 1, 1) _
+                , Sheets("CurwiseDataForSelctBU").Cells(i + 1, Dynamic_Lastcol)), 0)
+        Sheets("CurwiseDataForSelctBU").Range("A" & i).Font.Bold = True
+        Sheets("CurwiseDataForSelctBU").Range("A" & i).Font.Colorindex = 30
+        Sheets("CurwiseDataForSelctBU").Rows(i).WrapText = False
+        Sheets("CurwiseDataForSelctBU").Rows(i).HorizontalAlignment = xlLeft
+        Sheets("CurwiseDataForSelctBU").Rows(i).VerticalAlignment = xlCenter
+        Sheets("CurwiseDataForSelctBU").Rows(i + 1).WrapText = True
+        Sheets("CurwiseDataForSelctBU").Rows(i + 1).VerticalAlignment = xlCenter
+        Sheets("CurwiseDataForSelctBU").Rows(i + 1).HorizontalAlignment = xlCenter
+        Sheets("CurwiseDataForSelctBU").Range(Sheets("CurwiseDataForSelctBU").Cells(i + 1, 1) _
+                , Sheets("CurwiseDataForSelctBU").Cells(i + 1, Dynamic_Lastcol)). _
+                Interior.Colorindex = 15
+        
+        SumOfInvs = 0
+        For j = i + 2 To lastrowin_CurwiseDataForSelctBU + 20
+            Sheets("CurwiseDataForSelctBU").Columns(FindClosingBal).Interior.Colorindex = 2
+            SumOfInvs = SumOfInvs + Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal).Value
+            If Sheets("CurwiseDataForSelctBU").Range("A" & j).Value = "" Then 'grand total row
+               Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal).Value = Round(SumOfInvs, 2)
+               Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal).NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+               Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal - 1).Value = "Total"
+               Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal - 1).Font.Bold = True
+               Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal).Font.Bold = True
+              ' Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal).VerticalAlignment = xlRight
+               Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal).HorizontalAlignment = xlRight
+               'Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal).Interior.ColorIndex = 27
+               Sheets("CurwiseDataForSelctBU").Range("A" & j + 1).EntireRow.Insert
+               'Apply Border
+                Sheets("CurwiseDataForSelctBU").Range(Sheets("CurwiseDataForSelctBU").Cells(i + 1, 1), Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal)).Borders.LineStyle = xlContinuous
+                Sheets("CurwiseDataForSelctBU").Range(Sheets("CurwiseDataForSelctBU").Cells(i + 1, 1), Sheets("CurwiseDataForSelctBU").Cells(j, FindClosingBal)).Borders.Colorindex = 16
+               Exit For
+            End If
+        Next j
+     End If
+Next i
+
+
+Sheets("CurwiseDataForSelctBU").Range("A1").Value = ActiveBU + "-" + ActiveBUDesc
+Sheets("CurwiseDataForSelctBU").Range("A1").Font.Bold = True
+Sheets("CurwiseDataForSelctBU").Range("A1").Font.Size = 14
+
+Sheets("CurwiseDataForSelctBU").Range("A2").Value = "Prepaid Open Invoices As At " + Format(TransDt, "MMM-YYYY")
+Sheets("CurwiseDataForSelctBU").Range("A2").Font.Bold = True
+Sheets("CurwiseDataForSelctBU").Range("A2").Font.Italic = True
+
+Sheets("CurwiseDataForSelctBU").Range("A3").EntireRow.Insert
+
+Application.Goto (ThisWorkbook.Sheets("CurwiseDataForSelctBU").Range("A1"))
+
+ActiveWindow.DisplayGridlines = False
+
+End Function
+
+Public Function CreateCurWiseRecon(ByVal ActiveCur As String)
+Application.ScreenUpdating = False
+Dim ActiveBU As String, ActiveBUDesc As String, TransDt As Date, NewSheetName As String, periodDt As String
+Dim i As Integer, j As Integer, FindSelectMonth As Integer
+ActiveBU = Frm_Recon.CmbBox_BU.Text
+ActiveBUDesc = Trim(Frm_Recon.TxtBox_BU.Text)
+periodDt = PeriodString(Frm_Recon.TxtPeriod) 'It Converts dt in format [yyyy/0mm]
+TransDt = WorksheetFunction.EoMonth(ChangeDate(Frm_Recon.TxtPeriod), 0)
+
+'First Reset the Sheet 14 data
+Call Reset_ReconciliationCURwise
+
+'First Rename the sheet as per Requirement
+'Original Format is :- MMM YY PP Rec (CUR)
+NewSheetName = Format(TransDt, "MMM YY") + " " + "PP Rec" + " (" + Trim(ActiveCur) + ")"
+Sheet14.Name = NewSheetName
+
+'Copy Result from CurwiseDataForSelctBU to NewSheetName
+Sheet15.Range(Sheet15.Cells(1, 1), Sheet15.Cells(lastrowin_CurwiseDataForSelctBU, _
+LastColin_CurwiseDataForSelctBU)).Copy Destination:=Sheet14.Range(Sheet14.Cells(1, 1), _
+Sheet14.Cells(lastrowin_CurwiseDataForSelctBU, LastColin_CurwiseDataForSelctBU))
+
+Sheet14.Columns("A:AZ").AutoFit
+
+'Add Export Coding Here
+Call ReconRpt_Export
+'Else
+'    Exit Function
+'End If
+''Application.ScreenUpdating = True
+End Function
+
+
+Public Function CreateReconTemplate()
+Application.ScreenUpdating = False
+Dim ActiveBU As String, ActiveBUDesc As String, TransDt As Date, NewSheetName As String, periodDt As String
+Dim AccountNo As Single, Entity As String, PreparedBy As String, Prepared_Date As Date, Headings As String
+Dim i As Integer, j As Integer, FindSelectMonth As Integer, CurwiseSum As Double
+ActiveBU = Frm_Recon.CmbBox_BU.Text
+ActiveBUDesc = Trim(Frm_Recon.TxtBox_BU.Text)
+periodDt = PeriodString(Frm_Recon.TxtPeriod) 'It Converts dt in format [yyyy/0mm]
+TransDt = WorksheetFunction.EoMonth(ChangeDate(Frm_Recon.TxtPeriod), 0)
+
+'Default Values
+AccountNo = 325200
+Entity = ActiveBU + " - " + ActiveBUDesc
+PreparedBy = SunId_LoginName
+Prepared_Date = Date
+Headings = "Prepayment Reconciliation for the period " + Format(TransDt, "MMM-YYYY")
+Call Reset_ReconTemplate
+
+
+Sheet11.Range("B3").Value = periodDt
+Sheet11.Range("B5").Value = Headings
+NewSheetName = ActiveBU + " - " + Format(TransDt, "MMM YY") + " 32500" + " Front Sheet"
+Sheet11.Name = NewSheetName
+
+For i = 2 To LastRowIn_BuCurwiseData_ColE  'Line wise Coding
+    ActiveCurrency = Sheets("BUwiseCurData").Range("E" & i).Value
+    CurwiseSum = Round(Sheets("BUwiseCurData").Range("F" & i).Value, 2)
+    j = i + 6 'Row no for recon template
+    
+    'Start filling data
+    Sheet11.Range("B" & j).Value = AccountNo
+    Sheet11.Range("D" & j).Value = Entity
+    Sheet11.Range("F" & j).Value = ActiveCurrency
+    Sheet11.Range("H" & j).Value = CurwiseSum 'Schedule
+    Sheet11.Range("N" & j).Value = PreparedBy
+    Sheet11.Range("P" & j).Value = Prepared_Date
+    Sheet11.Range("L" & j).FormulaR1C1 = "=RC8-RC10"
+           
+Next i
+
+'Sheet11.Columns("B").AutoFit
+Sheet11.Columns("D").AutoFit
+Sheet11.Columns("F").AutoFit
+Sheet11.Columns("H").AutoFit 'Schedule
+Sheet11.Columns("L").AutoFit
+Sheet11.Columns("N").AutoFit
+Sheet11.Columns("P").AutoFit
+
+'Center Alignement of some certain columns
+Sheet11.Columns("B").HorizontalAlignment = xlCenter
+Sheet11.Columns("F").HorizontalAlignment = xlCenter
+
+Sheet11.Columns("H:L").HorizontalAlignment = xlRight
+Sheet11.Columns("O:P").HorizontalAlignment = xlCenter
+
+Sheet11.Columns("H").NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+Sheet11.Columns("L").NumberFormat = "#,##0.00_);[Red](#,##0.00)"
+Sheet11.Columns("P").NumberFormat = "dd/mm/yyyy"
+
+'Now Export
+Call ReconTemplate_Export
+
+End Function
